@@ -1,0 +1,19 @@
+# ide
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+__MACOSX/
+
+# python
+__pycache__/
+*.pyc
+/*.egg-info
+/dist/
+/build/
+
+# unit test
+.coverage
+coverage.xml
+.pytest_cache/
