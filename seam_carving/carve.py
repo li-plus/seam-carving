@@ -11,9 +11,6 @@ FORWARD_ENERGY = 'forward'
 BACKWARD_ENERGY = 'backward'
 VALID_ENERGY_MODES = (FORWARD_ENERGY, BACKWARD_ENERGY)
 
-FROM_LEFT = True
-FROM_TOP = False
-
 DROP_MASK_ENERGY = 1e5
 KEEP_MASK_ENERGY = 1e3
 
@@ -59,7 +56,7 @@ def _get_energy(gray: np.ndarray) -> np.ndarray:
     return energy
 
 
-def _get_backward_seam(energy: np.ndarray) -> Tuple[np.ndarray, float]:
+def _get_backward_seam(energy: np.ndarray) -> np.ndarray:
     """Compute the minimum vertical seam from the backward energy map"""
     assert energy.size > 0 and energy.ndim == 2
     h, w = energy.shape
@@ -76,14 +73,13 @@ def _get_backward_seam(energy: np.ndarray) -> Tuple[np.ndarray, float]:
         cost = cost[min_idx] + energy[r]
 
     c = np.argmin(cost)
-    total_cost = cost[c]
     seam = np.empty(h, dtype=np.int32)
 
     for r in range(h - 1, -1, -1):
         seam[r] = c
         c = parent[r, c]
 
-    return seam, total_cost
+    return seam
 
 
 def _get_backward_seams(gray: np.ndarray, num_seams: int,
@@ -97,7 +93,7 @@ def _get_backward_seams(gray: np.ndarray, num_seams: int,
     for _ in range(num_seams):
         if keep_mask is not None:
             energy[keep_mask] += KEEP_MASK_ENERGY
-        seam, _ = _get_backward_seam(energy)
+        seam = _get_backward_seam(energy)
         seams_mask[rows, idx_map[rows, seam]] = True
 
         seam_mask = _get_seam_mask(gray, seam)
@@ -106,6 +102,7 @@ def _get_backward_seams(gray: np.ndarray, num_seams: int,
         if keep_mask is not None:
             keep_mask = _remove_seam_mask(keep_mask, seam_mask)
 
+        # Only need to re-compute the energy in the bounding box of the seam
         _, cur_w = energy.shape
         lo = max(0, np.min(seam) - 1)
         hi = min(cur_w, np.max(seam) + 1)
@@ -120,8 +117,7 @@ def _get_backward_seams(gray: np.ndarray, num_seams: int,
 
 
 def _get_forward_seam(gray: np.ndarray,
-                      keep_mask: Optional[np.ndarray]
-                      ) -> Tuple[np.ndarray, float]:
+                      keep_mask: Optional[np.ndarray]) -> np.ndarray:
     """Compute the minimum vertical seam using forward energy"""
     assert gray.size > 0 and gray.ndim == 2
     gray = gray.astype(np.float32)
@@ -156,14 +152,13 @@ def _get_forward_seam(gray: np.ndarray,
         parent[r] = np.argmin(choices, axis=0) + base_idx
 
     c = np.argmin(dp)
-    total_cost = dp[c]
 
     seam = np.empty(h, dtype=np.int32)
     for r in range(h - 1, -1, -1):
         seam[r] = c
         c = parent[r, c]
 
-    return seam, total_cost
+    return seam
 
 
 def _get_forward_seams(gray: np.ndarray, num_seams: int,
@@ -174,7 +169,7 @@ def _get_forward_seams(gray: np.ndarray, num_seams: int,
     rows = np.arange(0, h, dtype=np.int32)
     idx_map = np.tile(np.arange(0, w, dtype=np.int32), h).reshape((h, w))
     for _ in range(num_seams):
-        seam, _ = _get_forward_seam(gray, keep_mask)
+        seam = _get_forward_seam(gray, keep_mask)
         seams_mask[rows, idx_map[rows, seam]] = True
         seam_mask = _get_seam_mask(gray, seam)
         gray = _remove_seam_mask(gray, seam_mask)
@@ -371,7 +366,7 @@ def remove_object(src: np.ndarray, drop_mask: np.ndarray,
         energy[drop_mask] -= DROP_MASK_ENERGY
         if keep_mask is not None:
             energy[keep_mask] += KEEP_MASK_ENERGY
-        seam, _ = _get_backward_seam(energy)
+        seam = _get_backward_seam(energy)
         seam_mask = _get_seam_mask(src, seam)
         gray = _remove_seam_mask(gray, seam_mask)
         drop_mask = _remove_seam_mask(drop_mask, seam_mask)

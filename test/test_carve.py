@@ -1,4 +1,3 @@
-import math
 import unittest
 import warnings
 from pathlib import Path
@@ -44,7 +43,7 @@ class TestCarve(unittest.TestCase):
             for _ in range(self.delta):
                 gray = src if src.ndim == 2 else carve._rgb2gray(src)
                 energy = carve._get_energy(gray)
-                seam, _ = carve._get_backward_seam(energy)
+                seam = carve._get_backward_seam(energy)
                 dst = carve._remove_seam(src, seam)
                 ans_dst = self._naive_remove_seam(src, seam)
                 assert (dst == ans_dst).all()
@@ -67,20 +66,19 @@ class TestCarve(unittest.TestCase):
                 parent[r, c] = min_col
 
         c = np.argmin(cost[-1])
-        total_cost = cost[-1, c]
         seam = np.empty(h, dtype=np.int32)
 
         for r in range(h - 1, -1, -1):
             seam[r] = c
             c = parent[r, c]
-        return seam, total_cost
+
+        return seam
 
     def test_get_backward_seam(self):
         energy = carve._get_energy(self.gray)
-        seam, cost = carve._get_backward_seam(energy)
-        ans_seam, ans_cost = self._naive_get_backward_seam(energy)
+        seam = carve._get_backward_seam(energy)
+        ans_seam = self._naive_get_backward_seam(energy)
         assert (seam == ans_seam).all()
-        assert math.isclose(cost, ans_cost)
 
     @staticmethod
     def _naive_get_forward_seam(gray):
@@ -114,29 +112,26 @@ class TestCarve(unittest.TestCase):
                 parent[r, c] = np.argmin(choices) + c - 1
 
         c = np.argmin(dp[-1])
-        total_cost = dp[-1, c]
-
         seam = np.empty(h, dtype=np.int32)
         for r in range(h - 1, -1, -1):
             seam[r] = c
             c = parent[r, c]
 
-        return seam, total_cost
+        return seam
 
     def test_get_forward_seam(self):
-        out_seam, out_cost = carve._get_forward_seam(self.gray, None)
-        ans_seam, ans_cost = self._naive_get_forward_seam(self.gray)
+        out_seam = carve._get_forward_seam(self.gray, None)
+        ans_seam = self._naive_get_forward_seam(self.gray)
         assert (out_seam == ans_seam).all()
-        assert math.isclose(out_cost, ans_cost)
 
     @staticmethod
     def _naive_reduce_width(src, num_seams, energy_mode):
         for _ in range(num_seams):
             gray = src if src.ndim == 2 else carve._rgb2gray(src)
             if energy_mode == 'backward':
-                seam, _ = carve._get_backward_seam(carve._get_energy(gray))
+                seam = carve._get_backward_seam(carve._get_energy(gray))
             else:
-                seam, _ = carve._get_forward_seam(gray, None)
+                seam = carve._get_forward_seam(gray, None)
             src = carve._remove_seam(src, seam)
         return src
 

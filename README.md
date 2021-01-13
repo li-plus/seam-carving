@@ -98,10 +98,10 @@ We compare the performance of our implementation and other popular Python repos 
 | [sameeptandon/python-seam-carving](https://github.com/sameeptandon/python-seam-carving) | 91.67     | 124.21    | N/A       | N/A       |
 | [andrewdcampbell/seam-carving](https://github.com/andrewdcampbell/seam-carving) | 91.38     | 90.89     | 98.47     | 102.84    |
 | [dharness/seam_carving](https://github.com/dharness/seam_carving) | 59.81     | 73.04     | N/A       | N/A       |
-| [Ours](https://github.com/li-plus/seam-carving)              | **2.63**  | **3.54**  | **5.34**  | **6.23**  |
+| [Ours](https://github.com/li-plus/seam-carving)              | **2.30**  | **3.26**  | **4.60**  | **5.40**  |
 
 ## References
 
-* Avidan, Shai, and Ariel Shamir. "Seam carving for content-aware image resizing." ACM SIGGRAPH 2007 papers. 2007. 10-es. [[paper]](https://dl.acm.org/doi/abs/10.1145/1275808.1276390)
-* Rubinstein, Michael, Ariel Shamir, and Shai Avidan. "Improved seam carving for video retargeting." ACM transactions on graphics (TOG) 27.3 (2008): 1-9. [[paper]](https://dl.acm.org/doi/abs/10.1145/1360612.1360615)
-* Avik Das. "Improved seam carving with forward energy." [[link]](https://avikdas.com/2019/07/29/improved-seam-carving-with-forward-energy.html)
+* Avidan, S., & Shamir, A. (2007). Seam carving for content-aware image resizing. In ACM SIGGRAPH 2007 papers (pp. 10-es). [[paper]](https://dl.acm.org/doi/abs/10.1145/1275808.1276390) [[blog]](https://faculty.idc.ac.il/arik/SCWeb/imret/index.html)
+* Rubinstein, M., Shamir, A., & Avidan, S. (2008). Improved seam carving for video retargeting. ACM transactions on graphics (TOG), 27(3), 1-9. [[paper]](https://dl.acm.org/doi/abs/10.1145/1360612.1360615)
+* Das, A. (2019). Improved seam carving with forward energy. [[blog]](https://avikdas.com/2019/07/29/improved-seam-carving-with-forward-energy.html)

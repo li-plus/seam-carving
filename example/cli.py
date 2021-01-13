@@ -11,7 +11,7 @@ import seam_carving
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('src', type=str)
-    parser.add_argument('-o', dest='dst', type=str, required=True)
+    parser.add_argument('-o', dest='dst', type=str, default='a.jpg')
     parser.add_argument('--keep', type=str, default=None)
     parser.add_argument('--drop', type=str, default=None)
     parser.add_argument('--dw', type=int, default=0)
