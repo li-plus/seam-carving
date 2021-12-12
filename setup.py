@@ -36,6 +36,7 @@ setuptools.setup(
     install_requires=[
         'numpy',
         'scipy',
+        'numba'
     ],
     extras_require={
         'dev': [

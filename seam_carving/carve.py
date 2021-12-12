@@ -1,6 +1,7 @@
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 import numpy as np
+from numba import jit
 from scipy.ndimage import sobel
 
 WIDTH_FIRST = 'width-first'
@@ -14,6 +15,21 @@ VALID_ENERGY_MODES = (FORWARD_ENERGY, BACKWARD_ENERGY)
 DROP_MASK_ENERGY = 1e5
 KEEP_MASK_ENERGY = 1e3
 
+
+@jit(nopython=True)
+def min_argmin_along_axis_0(a: np.ndarray) -> np.ndarray:
+    """Return the minimum along the first axis, along with the corresponding indices
+
+    The first row of the output array should match the output of numpy.min(a, axis=0)
+    while the second row should match the ouput of numpy.argmin(a, axis=0)."""
+    out = np.empty((2, a.shape[1]), dtype=np.float32)
+    for j in range(a.shape[1]):
+        value = min(a[0, j], a[1, j], a[2, j])
+        out[0, j] = value
+        for i in range(3):
+            if a[i, j] == value:
+                out[1, j] = i
+    return out
 
 def _rgb2gray(rgb: np.ndarray) -> np.ndarray:
     """Convert an RGB image to a grayscale image"""
@@ -116,16 +132,16 @@ def _get_backward_seams(gray: np.ndarray, num_seams: int,
     return seams_mask
 
 
-def _get_forward_seam(gray: np.ndarray,
-                      keep_mask: Optional[np.ndarray]) -> np.ndarray:
+@jit(nopython=True)
+def _get_forward_seam(gray: np.ndarray, keep_mask: Optional[np.ndarray]) -> np.ndarray:
     """Compute the minimum vertical seam using forward energy"""
     assert gray.size > 0 and gray.ndim == 2
     gray = gray.astype(np.float32)
     h, w = gray.shape
 
     top_row = gray[0]
-    top_row_lshift = np.hstack((top_row[1:], top_row[-1]))
-    top_row_rshift = np.hstack((top_row[0], top_row[:-1]))
+    top_row_lshift = np.hstack((top_row[1:], np.array([top_row[-1]], dtype=np.float32)))
+    top_row_rshift = np.hstack((np.array([top_row[0]], dtype=np.float32), top_row[:-1]))
     dp = np.abs(top_row_lshift - top_row_rshift)
 
     parent = np.zeros(gray.shape, dtype=np.int32)
@@ -133,8 +149,8 @@ def _get_forward_seam(gray: np.ndarray,
 
     for r in range(1, h):
         curr_row = gray[r]
-        curr_lshift = np.hstack((curr_row[1:], curr_row[-1]))
-        curr_rshift = np.hstack((curr_row[0], curr_row[:-1]))
+        curr_lshift = np.hstack((curr_row[1:], np.array([curr_row[-1]], dtype=np.float32)))
+        curr_rshift = np.hstack((np.array([curr_row[0]], dtype=np.float32), curr_row[:-1]))
         cost_top = np.abs(curr_lshift - curr_rshift)
         if keep_mask is not None:
             cost_top[keep_mask[r]] += KEEP_MASK_ENERGY
@@ -143,13 +159,16 @@ def _get_forward_seam(gray: np.ndarray,
         cost_left = cost_top + np.abs(prev_row - curr_rshift)
         cost_right = cost_top + np.abs(prev_row - curr_lshift)
 
-        dp_left = np.hstack((np.inf, dp[:-1]))
-        dp_right = np.hstack((dp[1:], np.inf))
+        dp_left = np.hstack((np.array([np.inf], dtype=np.float32), dp[:-1]))
+        dp_right = np.hstack((dp[1:], np.array([np.inf], dtype=np.float32)))
 
-        choices = np.vstack([cost_left + dp_left, cost_top + dp,
-                             cost_right + dp_right])
-        dp = np.min(choices, axis=0)
-        parent[r] = np.argmin(choices, axis=0) + base_idx
+        choices = np.vstack((cost_left + dp_left, cost_top + dp, cost_right + dp_right))
+        # dp = np.min(choices, axis=0)
+        # parent[r] = np.argmin(choices, axis=0) + base_idx
+
+        minimum_ = min_argmin_along_axis_0(choices)
+        dp = minimum_[0, :]
+        parent[r] = minimum_[1, :] + base_idx
 
     c = np.argmin(dp)
 
