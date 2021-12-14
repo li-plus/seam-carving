@@ -1,3 +1,4 @@
+import time
 from typing import Optional, Tuple
 
 import numpy as np
@@ -245,6 +246,7 @@ def _expand_width(src: np.ndarray, delta_width: int, energy_mode: str,
                   keep_mask: Optional[np.ndarray]) -> np.ndarray:
     """Expand the width of image by delta_width pixels"""
     assert src.ndim in (2, 3) and delta_width >= 0
+    start = time.time()
     if src.ndim == 2:
         gray = src
         src_h, src_w = src.shape
@@ -256,6 +258,7 @@ def _expand_width(src: np.ndarray, delta_width: int, energy_mode: str,
 
     seams_mask = _get_seams(gray, delta_width, energy_mode, keep_mask)
     dst = _create_dst(src, src_h, src_w, dst_shape, seams_mask)
+    print(f"Took {time.time()} seconds to insert {delta_width} pixels")
     return dst
 
 
