@@ -258,7 +258,7 @@ def _expand_width(src: np.ndarray, delta_width: int, energy_mode: str,
 
     seams_mask = _get_seams(gray, delta_width, energy_mode, keep_mask)
     dst = _create_dst(src, src_h, src_w, dst_shape, seams_mask)
-    print(f"Took {time.time()} seconds to insert {delta_width} pixels")
+    print(f"Took {time.time() - start} seconds to insert {delta_width} pixels")
     return dst
 
 
