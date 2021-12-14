@@ -132,7 +132,7 @@ def _get_backward_seams(gray: np.ndarray, num_seams: int,
     return seams_mask
 
 
-@jit(nopython=True)
+@jit(nopython=True, cache=True)
 def _get_forward_seam(gray: np.ndarray, keep_mask: Optional[np.ndarray]) -> np.ndarray:
     """Compute the minimum vertical seam using forward energy"""
     assert gray.size > 0 and gray.ndim == 2
@@ -226,6 +226,20 @@ def _reduce_width(src: np.ndarray, delta_width: int, energy_mode: str,
     dst = src[~seams_mask].reshape(dst_shape)
     return dst
 
+@jit(nopython=True, cache=True)
+def _create_dst(src, src_h, src_w, dst_shape, seams_mask):
+    dst = np.empty(dst_shape, dtype=np.uint8)
+    for row in range(src_h):
+        dst_col = 0
+        for src_col in range(src_w):
+            if seams_mask[row, src_col]:
+                lo = max(0, src_col - 1)
+                hi = min(src_w-1, src_col + 1)
+                dst[row, dst_col] = (src[row, lo] + src[row, hi]) / 2
+                dst_col += 1
+            dst[row, dst_col] = src[row, src_col]
+            dst_col += 1
+    return dst
 
 def _expand_width(src: np.ndarray, delta_width: int, energy_mode: str,
                   keep_mask: Optional[np.ndarray]) -> np.ndarray:
@@ -241,20 +255,7 @@ def _expand_width(src: np.ndarray, delta_width: int, energy_mode: str,
         dst_shape = (src_h, src_w + delta_width, src_c)
 
     seams_mask = _get_seams(gray, delta_width, energy_mode, keep_mask)
-    dst = np.empty(dst_shape, dtype=np.uint8)
-
-    for row in range(src_h):
-        dst_col = 0
-        for src_col in range(src_w):
-            if seams_mask[row, src_col]:
-                lo = max(0, src_col - 1)
-                hi = src_col + 1
-                dst[row, dst_col] = src[row, lo:hi].mean(axis=0)
-                dst_col += 1
-            dst[row, dst_col] = src[row, src_col]
-            dst_col += 1
-        assert dst_col == src_w + delta_width
-
+    dst = _create_dst(src, src_h, src_w, dst_shape, seams_mask)
     return dst
 
 
