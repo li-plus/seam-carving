@@ -13,6 +13,7 @@ VALID_ENERGY_MODES = (FORWARD_ENERGY, BACKWARD_ENERGY)
 
 DROP_MASK_ENERGY = 1e5
 KEEP_MASK_ENERGY = 1e3
+MAX_MEAN_ENERGY = 1e10
 
 
 def _rgb2gray(rgb: np.ndarray) -> np.ndarray:
@@ -73,13 +74,14 @@ def _get_backward_seam(energy: np.ndarray) -> np.ndarray:
         cost = cost[min_idx] + energy[r]
 
     c = np.argmin(cost)
+    min_cost = cost[c] / w
     seam = np.empty(h, dtype=np.int32)
 
     for r in range(h - 1, -1, -1):
         seam[r] = c
         c = parent[r, c]
 
-    return seam
+    return seam, min_cost
 
 
 def _get_backward_seams(gray: np.ndarray, num_seams: int,
@@ -93,7 +95,11 @@ def _get_backward_seams(gray: np.ndarray, num_seams: int,
     for _ in range(num_seams):
         if keep_mask is not None:
             energy[keep_mask] += KEEP_MASK_ENERGY
-        seam = _get_backward_seam(energy)
+        seam, min_cost = _get_backward_seam(energy)
+
+        if min_cost > MAX_MEAN_ENERGY:
+            break
+
         seams_mask[rows, idx_map[rows, seam]] = True
 
         seam_mask = _get_seam_mask(gray, seam)
@@ -197,14 +203,16 @@ def _reduce_width(src: np.ndarray, delta_width: int, energy_mode: str,
     if src.ndim == 2:
         gray = src
         src_h, src_w = src.shape
-        dst_shape = (src_h, src_w - delta_width)
+        dst_shape = [src_h, src_w - delta_width]
     else:
         gray = _rgb2gray(src)
         src_h, src_w, src_c = src.shape
-        dst_shape = (src_h, src_w - delta_width, src_c)
+        dst_shape = [src_h, src_w - delta_width, src_c]
 
     seams_mask = _get_seams(gray, delta_width, energy_mode, keep_mask)
-    dst = src[~seams_mask].reshape(dst_shape)
+    dst = src[~seams_mask]
+    dst_shape[1] = dst.shape[0] // src_h
+    dst = dst.reshape(dst_shape)
     return dst
 
 

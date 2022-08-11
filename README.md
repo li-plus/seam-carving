@@ -1,5 +1,13 @@
 # Seam Carving
 
+This fork enables us to terminate removing seams if the energy of the seam becomes greater than the threshold value:
+
+```python
+import seam_carving
+seam_carving.carve.MAX_MEAN_ENERGY = 10.0
+```
+
+
 [![PyPI](https://img.shields.io/pypi/v/seam-carving)](https://pypi.org/project/seam-carving/)
 [![Unit Test](https://github.com/li-plus/seam-carving/workflows/Unit%20Test/badge.svg?branch=master)](https://github.com/li-plus/seam-carving/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/li-plus/seam-carving/blob/master/LICENSE)
