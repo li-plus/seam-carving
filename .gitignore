@@ -12,6 +12,8 @@ __pycache__/
 /*.egg-info
 /dist/
 /build/
+.ipynb_checkpoints
+.mypy_cache/
 
 # unit test
 .coverage
