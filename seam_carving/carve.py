@@ -312,6 +312,15 @@ def _resize_width(
     return dst, aux_energy
 
 
+def _transpose_image(src: np.ndarray) -> np.ndarray:
+    """Transpose a source image in rgb or grayscale format"""
+    if src.ndim == 3:
+        dst = src.transpose((1, 0, 2))
+    else:
+        dst = src.T
+    return dst
+
+
 def _resize_height(
     src: np.ndarray,
     height: int,
@@ -323,16 +332,9 @@ def _resize_height(
     assert src.ndim in (2, 3) and height > 0
     if aux_energy is not None:
         aux_energy = aux_energy.T
-    if src.ndim == 3:
-        src, aux_energy = _resize_width(
-            src.transpose((1, 0, 2)), height, energy_mode, aux_energy, step_ratio
-        )
-        src = src.transpose((1, 0, 2))
-    else:
-        src, aux_energy = _resize_width(
-            src.T, height, energy_mode, aux_energy, step_ratio
-        )
-        src = src.T
+    src = _transpose_image(src)
+    src, aux_energy = _resize_width(src, height, energy_mode, aux_energy, step_ratio)
+    src = _transpose_image(src)
     if aux_energy is not None:
         aux_energy = aux_energy.T
     return src, aux_energy
@@ -391,6 +393,11 @@ def resize(
     """
     src = _check_src(src)
 
+    if order not in _list_enum(OrderMode):
+        raise ValueError(
+            f"expect order to be one of {_list_enum(OrderMode)}, got {order}"
+        )
+
     aux_energy = None
 
     if keep_mask is not None:
@@ -407,10 +414,18 @@ def resize(
             aux_energy = np.zeros(src.shape[:2], dtype=np.float32)
         aux_energy[drop_mask] -= DROP_MASK_ENERGY
 
+        if order == OrderMode.HEIGHT_FIRST:
+            src = _transpose_image(src)
+            aux_energy = aux_energy.T
+
         num_seams = (aux_energy < 0).sum(1).max()
         while num_seams > 0:
             src, aux_energy = _reduce_width(src, num_seams, energy_mode, aux_energy)
             num_seams = (aux_energy < 0).sum(1).max()
+
+        if order == OrderMode.HEIGHT_FIRST:
+            src = _transpose_image(src)
+            aux_energy = aux_energy.T
 
     # resize image if `size` is given
     if size is not None:
@@ -427,16 +442,12 @@ def resize(
             src, aux_energy = _resize_height(
                 src, height, energy_mode, aux_energy, step_ratio
             )
-        elif order == OrderMode.HEIGHT_FIRST:
+        else:
             src, aux_energy = _resize_height(
                 src, height, energy_mode, aux_energy, step_ratio
             )
             src, aux_energy = _resize_width(
                 src, width, energy_mode, aux_energy, step_ratio
-            )
-        else:
-            raise ValueError(
-                f"expect order to be one of {_list_enum(OrderMode)}, got {order}"
             )
 
     return src

@@ -154,7 +154,7 @@ class TestCarve(unittest.TestCase):
         self.gray = np.random.randint(0, 256, (self.h, self.w), dtype=np.uint8)
         self.rgb = np.random.randint(0, 256, (self.h, self.w, 3), dtype=np.uint8)
         self.keep_mask = np.random.randint(0, 2, (self.h, self.w)).astype(bool)
-        self.drop_mask = np.random.randint(0, 2, (self.h, self.w)).astype(bool)
+        self.drop_mask = np.random.random((self.h, self.w)) < 0.05
         self.keep_aux_energy = np.zeros((self.h, self.w), dtype=np.float32)
         self.keep_aux_energy[self.keep_mask] += carve.KEEP_MASK_ENERGY
         self.drop_aux_energy = np.zeros((self.h, self.w), dtype=np.float32)
@@ -235,21 +235,30 @@ class TestCarve(unittest.TestCase):
             assert (out == ref).all()
 
     def test_resize(self):
-        cases = [
-            dict(src=src, size=(w, h), energy_mode=energy_mode, order=order)
-            for src in (self.gray, self.rgb)
-            for w in (self.lo_w, self.w, self.hi_w)
-            for h in (self.lo_h, self.h, self.hi_h)
-            for energy_mode in ("backward", "forward")
-            for order in ("width-first", "height-first")
-        ] + [
-            dict(src=src, size=(w, h), energy_mode=energy_mode, dtype=dtype)
-            for src in (self.gray, self.rgb)
-            for w in (self.lo_w, self.w, self.hi_w)
-            for h in (self.lo_h, self.h, self.hi_h)
-            for energy_mode in ("backward", "forward")
-            for dtype in (np.uint8, np.int32, np.int64, np.float32, np.float64)
-        ]
+        cases = (
+            [
+                dict(src=src, size=(w, h), energy_mode=energy_mode, order=order)
+                for src in (self.gray, self.rgb)
+                for w in (self.lo_w, self.w, self.hi_w)
+                for h in (self.lo_h, self.h, self.hi_h)
+                for energy_mode in ("backward", "forward")
+                for order in ("width-first", "height-first")
+            ]
+            + [
+                dict(src=src, size=(w, h), energy_mode=energy_mode, dtype=dtype)
+                for src in (self.gray, self.rgb)
+                for w in (self.lo_w, self.w, self.hi_w)
+                for h in (self.lo_h, self.h, self.hi_h)
+                for energy_mode in ("backward", "forward")
+                for dtype in (np.uint8, np.int32, np.int64, np.float32, np.float64)
+            ]
+            + [
+                dict(src=src, size=(w, h), keep_mask=self.keep_mask)
+                for src in (self.gray, self.rgb)
+                for w in (self.lo_w, self.w, self.hi_w)
+                for h in (self.lo_h, self.h, self.hi_h)
+            ]
+        )
         for kwargs in cases:
             src = kwargs.pop("src")
             dtype = kwargs.pop("dtype", src.dtype)
@@ -257,6 +266,25 @@ class TestCarve(unittest.TestCase):
             dst = seam_carving.resize(src, **kwargs)
             w, h = kwargs["size"]
             assert dst.shape[:2] == (h, w)
+            assert dst.ndim == src.ndim
+            assert dst.dtype == src.dtype
+
+        cases = [
+            dict(src=src, order=order, drop_mask=self.drop_mask)
+            for src in (self.gray, self.rgb)
+            for order in ("width-first", "height-first")
+        ]
+        for kwargs in cases:
+            src = kwargs.pop("src")
+            src_h, src_w = src.shape[:2]
+            dst = seam_carving.resize(src, **kwargs)
+            dst_h, dst_w = dst.shape[:2]
+            if kwargs["order"] == "width-first":
+                assert dst_h == src_h
+                assert dst_w <= src_w
+            else:
+                assert dst_h <= src_h
+                assert dst_w == src_w
             assert dst.ndim == src.ndim
             assert dst.dtype == src.dtype
 
