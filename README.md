@@ -25,34 +25,35 @@ pip install git+https://github.com/li-plus/seam-carving.git@master
 
 ## Quick Start
 
-To scale an image, use `seam_carving.resize` method.
+To resize an image using seam carving:
 
 ```python
 import numpy as np
 from PIL import Image
 import seam_carving
 
-src = np.array(Image.open('fig/castle.jpg'))
+src = np.array(Image.open("fig/castle.jpg"))
 src_h, src_w, _ = src.shape
 dst = seam_carving.resize(
-    src, (src_w - 200, src_h),
-    energy_mode='backward',   # Choose from {backward, forward}
-    order='width-first',  # Choose from {width-first, height-first}
-    keep_mask=None
+    src,  # source image (rgb or gray)
+    size=(src_w - 200, src_h),  # target size
+    energy_mode="backward",  # choose from {backward, forward}
+    order="width-first",  # choose from {width-first, height-first}
+    keep_mask=None,  # object mask to protect from removal
 )
 Image.fromarray(dst).show()
 ```
 
-To remove an object from an image, use `seam_carving.remove_object` method.
+To remove an object from the image:
 
 ```python
-src = np.array(Image.open('fig/beach.jpg'))
-mask = np.array(Image.open('fig/beach_girl.png').convert('L'))
-dst = seam_carving.remove_object(src, drop_mask=mask, keep_mask=None)
+src = np.array(Image.open("fig/beach.jpg"))
+mask = np.array(Image.open("fig/beach_girl.png").convert("L"))
+dst = seam_carving.resize(src, drop_mask=mask)
 Image.fromarray(dst).show()
 ```
 
-For more examples, please refer to [example/demo.py](example/demo.py).
+For more examples, please refer to [example/demo.ipynb](example/demo.ipynb).
 
 ## Example Results
 
@@ -98,7 +99,7 @@ We compare the performance of our implementation and other popular Python repos 
 | [sameeptandon/python-seam-carving](https://github.com/sameeptandon/python-seam-carving) | 91.67     | 124.21    | N/A       | N/A       |
 | [andrewdcampbell/seam-carving](https://github.com/andrewdcampbell/seam-carving)         | 91.38     | 90.89     | 98.47     | 102.84    |
 | [dharness/seam_carving](https://github.com/dharness/seam_carving)                       | 59.81     | 73.04     | N/A       | N/A       |
-| [Ours](https://github.com/li-plus/seam-carving)                                         | **1.12**  | **1.14**  | **1.13**  | **1.22**  |
+| [Ours](https://github.com/li-plus/seam-carving)                                         | **1.03**  | **1.08**  | **1.07**  | **1.17**  |
 
 ## References
 
