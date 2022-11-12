@@ -92,13 +92,13 @@ Specify an object mask to remove (red) and a mask to protect (green, optional).
 
 We compare the performance of our implementation and other popular Python repos on [castle.jpg](fig/castle.jpg). The image is narrowed or widened by 200 pixels using backward energy (BE) or forward energy (FE), respectively. Below is the running time (second) evaluated on a MacBook Pro.
 
-| Methods                                                      | BE -200px | BE +200px | FE -200px | FE +200px |
-| ------------------------------------------------------------ | --------- | --------- | --------- | --------- |
-| [vivianhylee/seam-carving](https://github.com/vivianhylee/seam-carving) | 192.63    | 217.04    | 109.33    | 108.53    |
+| Methods                                                                                 | BE -200px | BE +200px | FE -200px | FE +200px |
+| --------------------------------------------------------------------------------------- | --------- | --------- | --------- | --------- |
+| [vivianhylee/seam-carving](https://github.com/vivianhylee/seam-carving)                 | 192.63    | 217.04    | 109.33    | 108.53    |
 | [sameeptandon/python-seam-carving](https://github.com/sameeptandon/python-seam-carving) | 91.67     | 124.21    | N/A       | N/A       |
-| [andrewdcampbell/seam-carving](https://github.com/andrewdcampbell/seam-carving) | 91.38     | 90.89     | 98.47     | 102.84    |
-| [dharness/seam_carving](https://github.com/dharness/seam_carving) | 59.81     | 73.04     | N/A       | N/A       |
-| [Ours](https://github.com/li-plus/seam-carving)              | **2.30**  | **3.26**  | **4.60**  | **5.40**  |
+| [andrewdcampbell/seam-carving](https://github.com/andrewdcampbell/seam-carving)         | 91.38     | 90.89     | 98.47     | 102.84    |
+| [dharness/seam_carving](https://github.com/dharness/seam_carving)                       | 59.81     | 73.04     | N/A       | N/A       |
+| [Ours](https://github.com/li-plus/seam-carving)                                         | **1.12**  | **1.14**  | **1.13**  | **1.22**  |
 
 ## References
 
