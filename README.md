@@ -95,10 +95,10 @@ We compare the performance of our implementation and other popular Python repos 
 
 | Methods                                                                                 | BE -200px | BE +200px | FE -200px | FE +200px |
 | --------------------------------------------------------------------------------------- | --------- | --------- | --------- | --------- |
-| [vivianhylee/seam-carving](https://github.com/vivianhylee/seam-carving)                 | 192.63    | 217.04    | 109.33    | 108.53    |
-| [sameeptandon/python-seam-carving](https://github.com/sameeptandon/python-seam-carving) | 91.67     | 124.21    | N/A       | N/A       |
-| [andrewdcampbell/seam-carving](https://github.com/andrewdcampbell/seam-carving)         | 91.38     | 90.89     | 98.47     | 102.84    |
-| [dharness/seam_carving](https://github.com/dharness/seam_carving)                       | 59.81     | 73.04     | N/A       | N/A       |
+| [vivianhylee/seam-carving](https://github.com/vivianhylee/seam-carving)                 | 168.47    | 179.52    | 89.24     | 90.27     |
+| [andrewdcampbell/seam-carving](https://github.com/andrewdcampbell/seam-carving)         | 119.47    | 126.44    | 133.29    | 133.73    |
+| [sameeptandon/python-seam-carving](https://github.com/sameeptandon/python-seam-carving) | 69.18     | 95.21     | N/A       | N/A       |
+| [dharness/seam_carving](https://github.com/dharness/seam_carving)                       | 50.25     | 57.86     | N/A       | N/A       |
 | [Ours](https://github.com/li-plus/seam-carving)                                         | **1.03**  | **1.08**  | **1.07**  | **1.17**  |
 
 ## References
